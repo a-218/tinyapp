@@ -15,12 +15,22 @@ app.get("/", (req, res) => {
 
 });
 
+
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase};
   //res.json(urlDatabase);
   res.render("urls_index", templateVars);
   
 });
+
+//new route
+app.get("/urls/:shortURL", (req, res) => {
+  let a = req.params.shortURL;
+  const templateVars ={ shortURL: req.params.shortURL, longURL: urlDatabase[a]};
+  //console.log(req.params)
+  //console.log(templateVars);
+  res.render("urls_show", templateVars);
+})
 
 app.get("/hello", (req, res) => {
   res.send(`<html><body>Hello <b>World</b></body></html>\n`);
