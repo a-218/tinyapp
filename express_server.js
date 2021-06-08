@@ -54,7 +54,15 @@ app.post("/urls", (req, res) => {
   res.redirect (`/urls/${short}`);
 });
 
+// Delete  POST /articles/:id/delete
+app.post('/urls/:id/delete', (req, res) => {
+  const idToBeDeleted = req.params.id;
+  console.log('Id to be deleted', idToBeDeleted);
+  delete urlDatabase[idToBeDeleted];
+  console.log(urlDatabase);
 
+  res.redirect('/urls');
+});
 
 
 app.get("/urls", (req, res) => {
@@ -67,14 +75,15 @@ app.get("/urls", (req, res) => {
 //new route
 app.get("/urls/:shortURL", (req, res) => {
   let a = req.params.shortURL;
+  console.log('a is something;, ', a)
   const longURL = urlDatabase[a];
-  console.log('llllll', longURL);
+  console.log('longUL', longURL);
   const templateVars ={ shortURL: req.params.shortURL, longURL: urlDatabase[a]};
   //console.log(req.params)
   //console.log(templateVars);
-  //res.render("urls_show", templateVars);
+  res.render("urls_show", templateVars);
 
-  res.redirect(longURL);
+  //res.redirect(longURL);
 })
 
 app.get("/hello", (req, res) => {
