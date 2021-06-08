@@ -20,6 +20,9 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+
+
+
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 app.get("/", (req, res) => {
@@ -31,18 +34,28 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+// app.get("/urls/:id", (req, res) => {
+//   let a = req.params.id;   /////
+//   console.log(a);
+//   res.render("urls_new");///// 
+// });
+
+
 app.post("/urls", (req, res) => {
-  
-  console.log(req.body);    // Log the POST request body to the consol
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  let long = req.body.longURL
+  let short = generateRandomString();
+  urlDatabase[short] = long;
+  console.log(req.body); 
+  console.log(short, long);
+  console.log(urlDatabase);
+     // Log the POST request body to the consol
+  //res.send("Ok");         // Respond with 'Ok' (we will replace this)
+
+  res.redirect (`/urls/${short}`);
 });
 
 
-app.get("/urls/:id", (req, res) => {
-  let a = req.params.id;   /////
-  console.log(a);
-  res.render("urls_news", templateVars);/////
-});
+
 
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase};
@@ -54,10 +67,14 @@ app.get("/urls", (req, res) => {
 //new route
 app.get("/urls/:shortURL", (req, res) => {
   let a = req.params.shortURL;
+  const longURL = urlDatabase[a];
+  console.log('llllll', longURL);
   const templateVars ={ shortURL: req.params.shortURL, longURL: urlDatabase[a]};
   //console.log(req.params)
   //console.log(templateVars);
-  res.render("urls_show", templateVars);
+  //res.render("urls_show", templateVars);
+
+  res.redirect(longURL);
 })
 
 app.get("/hello", (req, res) => {
