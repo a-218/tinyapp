@@ -24,7 +24,18 @@ const urlDatabase = {
 };
 
 
-
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -32,6 +43,8 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 
 });
+
+
 ///this is create new URL////
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
@@ -47,9 +60,6 @@ app.get("/urls/new", (req, res) => {
 //   console.log(a);
 //   res.render("urls_new");///// 
 // });
-
-
-
 
 ////post URLS
 
@@ -87,90 +97,90 @@ app.post('/urls/:id', (req, res) => {
     urlDatabase[a] = req.body.newURL;
     res.redirect('/urls');
   } else { 
-   //about error  templateVars ={ shortURL: a, longURL: urlDatabase[a]};
+
     const templateVars ={ shortURL: a, longURL: 'sdfds'};
     res.render("urls_show", templateVars); 
   }
-      // render edit page with an error message 
-  //const longURL = urlDatabase[a];
-  //const shortURL = a;
-  
-  //const templateVars ={ shortURL: shortURL, longURL: urlDatabase[a]};  
+
 });
 
 app.post('/logout', (req,res) => {
 
-  res.clearCookie('Username');
+  //res.clearCookie('Username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
 ///POST LOGIn  
 app.post('/login', (req,res) => {
-  //console.log(req.body.Username);
   const Username = req.body.Username
 
   console.log('username is,', Username);
-  res.cookie('Username', Username) ///accessible across all using req.cookies.Username
-  
-  // const templateVars = {
-  //   username: Username
-  //   // ... any other vars
-  // };
-
-  // console.log(templateVars)
+  res.cookie('Username', Username) 
+  ///accessible across all using req.cookies.Username
  
-  //const name = res.cookies('Username');
-
-  //console.log(name);
-  //res.render('partials/_header', Username)
-  //res.render('partials/_header')
   res.redirect('/urls')
 });
 
 
 
- ////////GET???t
+ ////////GET///////
 
  app.get("/urls", (req, res) => {
-   const templateVars = { 
+  
+  const id = req.cookies.user_id;
+  const user = users[id];
+
+  console.log(users);
+
+  const templateVars = { 
    urls: urlDatabase,
-   Username: req.cookies.Username};
+   user: user}
+   //Username: req.cookies.Username};
    //res.json(urlDatabase);
-   console.log('asdsadsad',req.cookies.Username)
+   //console.log('asdsadsad',req.cookies.Username)
    console.log('template vagr', templateVars )
    res.render("urls_index", templateVars); //render earch under views for the specific " file name",
   
  });
 
 
-// app.get("/urls", (req, res) => {
-//   const templateVars = { urls: urlDatabase,
-//   username: res.cookies(username)};
-
-//   console.log( 'asdsadsadsad',templateVars)
-//   //res.json(urlDatabase);
-//   res.render("urls_index", templateVars); //render earch under views for the specific " file name",
-  
-// });
-
 
 //new route
 app.get("/urls/:shortURL", (req, res) => {
   let a = req.params.shortURL;
-  console.log('a is something;, ', a)
+  console.log('WHEN EDIT IS PRESSED, ', a)
   const longURL = urlDatabase[a];
-  console.log('longUL', longURL);
   const templateVars ={ 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[a],
     Username: req.cookies.Username
   };
-  //console.log(req.params)
-  //console.log(templateVars);
-  res.render("urls_show", templateVars);  //jump to the tiny URL page
+  console.log('templateVars at EDIT ', templateVars);
 
-  //res.redirect(longURL);   //goign to the acutal website
+  res.render("urls_show", templateVars);  
+  //res.redirect(longURL);  //goign to the acutal website
 })
+
+
+//Register 
+app.get("/register", (req, res) => {
+  res.render('register');
+  //res.redirect(longURL);  //goign to the acutal website
+})
+
+
+app.post('/register',(req, res) => {
+  console.log(req.body); 
+  let id = generateRandomString();
+  let email= req.body.email;
+  let password = req.body.password;
+  users[id] = {id, email,password}
+  console.log(users);
+  res.cookie('user_id', id);
+  console.log(id);   //generate user id
+  res.redirect('/urls');
+});
 
 app.get("/hello", (req, res) => {
   res.send(`<html><body>Hello <b>World</b></body></html>\n`);
