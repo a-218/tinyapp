@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
+app.use(express.urlencoded({extended : true}));
 
 function generateRandomString() {
   const a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -29,8 +30,10 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 
 });
-
+///this is create new URL////
 app.get("/urls/new", (req, res) => {
+
+  console.log('after i press the create new url')
   res.render("urls_new");
 });
 
@@ -64,11 +67,35 @@ app.post('/urls/:id/delete', (req, res) => {
   res.redirect('/urls');
 });
 
+///EDIt URLS
+app.post('/urls/:id', (req, res) => {
+  let a = req.params.id;
+  console.log('red body',   req.body.newURL);
+  console.log( 'EDIT checking return values omething;, ', a)
+
+  if(urlDatabase[a] && req.body.newURL) { 
+    urlDatabase[a] = req.body.newURL;
+    res.redirect('/urls');
+  } else { 
+   //about error  templateVars ={ shortURL: a, longURL: urlDatabase[a]};
+    const templateVars ={ shortURL: a, longURL: 'sdfds'};
+    res.render("urls_show", templateVars); 
+  }
+      // render edit page with an error message 
+  //const longURL = urlDatabase[a];
+  //const shortURL = a;
+  
+  //const templateVars ={ shortURL: shortURL, longURL: urlDatabase[a]};
+ 
+  
+  
+});
+
 
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase};
   //res.json(urlDatabase);
-  res.render("urls_index", templateVars);
+  res.render("urls_index", templateVars); //render earch under views for the specific " file name",
   
 });
 
@@ -81,9 +108,9 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars ={ shortURL: req.params.shortURL, longURL: urlDatabase[a]};
   //console.log(req.params)
   //console.log(templateVars);
-  res.render("urls_show", templateVars);
+  res.render("urls_show", templateVars);  //jump to the tiny URL page
 
-  //res.redirect(longURL);
+  //res.redirect(longURL);   //goign to the acutal website
 })
 
 app.get("/hello", (req, res) => {
