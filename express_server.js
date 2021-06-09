@@ -131,7 +131,7 @@ app.post('/login', (req,res) => {
   const id = req.cookies.user_id;
   const user = users[id];
 
-  console.log(users);
+  //console.log(users);
 
   const templateVars = { 
    urls: urlDatabase,
@@ -139,7 +139,7 @@ app.post('/login', (req,res) => {
    //Username: req.cookies.Username};
    //res.json(urlDatabase);
    //console.log('asdsadsad',req.cookies.Username)
-   console.log('template vagr', templateVars )
+   //console.log('template vagr', templateVars )
    res.render("urls_index", templateVars); //render earch under views for the specific " file name",
   
  });
@@ -169,16 +169,44 @@ app.get("/register", (req, res) => {
   //res.redirect(longURL);  //goign to the acutal website
 })
 
+function emailHelper (usersObject, email) {
+  console.log('in the helper' , email);
+  for (const key in usersObject) {
+    console.log(key);
+    if (usersObject[key]['email']=== email) {
+      console.log(usersObject['email']);
+      return  false;
+    }
+  }
+  return true;
+
+}
+
 
 app.post('/register',(req, res) => {
-  console.log(req.body); 
+  //console.log(req.body); 
   let id = generateRandomString();
   let email= req.body.email;
+  //console.log('before passing into helper email is ', email);
+
+  if (emailHelper(users, email ) === false) {
+    console.log(users);
+    return res.status(400).send('this email is registered')
+  }
+  
   let password = req.body.password;
+
+  if (!password || !email) {
+    console.log(users);
+    return res.status(400).send('you must enter an email AND a password');
+  }
+
+  
   users[id] = {id, email,password}
   console.log(users);
+
   res.cookie('user_id', id);
-  console.log(id);   //generate user id
+  //console.log(id);   //generate user id
   res.redirect('/urls');
 });
 
