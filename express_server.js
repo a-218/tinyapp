@@ -1,9 +1,11 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
+var cookieParser = require('cookie-parser')
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({extended : true}));
+app.use(cookieParser());
 
 function generateRandomString() {
   const a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -32,9 +34,12 @@ app.get("/", (req, res) => {
 });
 ///this is create new URL////
 app.get("/urls/new", (req, res) => {
-
-  console.log('after i press the create new url')
-  res.render("urls_new");
+  const templateVars = { 
+    urls: urlDatabase,
+    Username: req.cookies.Username};
+  console.log('after i press the create new url',templateVars)
+  res.render("urls_new",templateVars);
+  
 });
 
 // app.get("/urls/:id", (req, res) => {
@@ -42,6 +47,11 @@ app.get("/urls/new", (req, res) => {
 //   console.log(a);
 //   res.render("urls_new");///// 
 // });
+
+
+
+
+////post URLS
 
 
 app.post("/urls", (req, res) => {
@@ -67,7 +77,7 @@ app.post('/urls/:id/delete', (req, res) => {
   res.redirect('/urls');
 });
 
-///EDIt URLS
+/// POST EDIt URLS
 app.post('/urls/:id', (req, res) => {
   let a = req.params.id;
   console.log('red body',   req.body.newURL);
@@ -85,19 +95,64 @@ app.post('/urls/:id', (req, res) => {
   //const longURL = urlDatabase[a];
   //const shortURL = a;
   
-  //const templateVars ={ shortURL: shortURL, longURL: urlDatabase[a]};
+  //const templateVars ={ shortURL: shortURL, longURL: urlDatabase[a]};  
+});
+
+app.post('/logout', (req,res) => {
+
+  res.clearCookie('Username');
+  res.redirect('/urls');
+});
+
+///POST LOGIn  
+app.post('/login', (req,res) => {
+  //console.log(req.body.Username);
+  const Username = req.body.Username
+
+  console.log('username is,', Username);
+  res.cookie('Username', Username) ///accessible across all using req.cookies.Username
+  
+  // const templateVars = {
+  //   username: Username
+  //   // ... any other vars
+  // };
+
+  // console.log(templateVars)
  
-  
-  
+  //const name = res.cookies('Username');
+
+  //console.log(name);
+  //res.render('partials/_header', Username)
+  //res.render('partials/_header')
+  res.redirect('/urls')
 });
 
 
-app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase};
-  //res.json(urlDatabase);
-  res.render("urls_index", templateVars); //render earch under views for the specific " file name",
+
+ ////////GET???t
+
+ app.get("/urls", (req, res) => {
+   const templateVars = { 
+   urls: urlDatabase,
+   Username: req.cookies.Username};
+   //res.json(urlDatabase);
+   console.log('asdsadsad',req.cookies.Username)
+   console.log('template vagr', templateVars )
+   res.render("urls_index", templateVars); //render earch under views for the specific " file name",
   
-});
+ });
+
+
+// app.get("/urls", (req, res) => {
+//   const templateVars = { urls: urlDatabase,
+//   username: res.cookies(username)};
+
+//   console.log( 'asdsadsadsad',templateVars)
+//   //res.json(urlDatabase);
+//   res.render("urls_index", templateVars); //render earch under views for the specific " file name",
+  
+// });
+
 
 //new route
 app.get("/urls/:shortURL", (req, res) => {
@@ -105,7 +160,11 @@ app.get("/urls/:shortURL", (req, res) => {
   console.log('a is something;, ', a)
   const longURL = urlDatabase[a];
   console.log('longUL', longURL);
-  const templateVars ={ shortURL: req.params.shortURL, longURL: urlDatabase[a]};
+  const templateVars ={ 
+    shortURL: req.params.shortURL, 
+    longURL: urlDatabase[a],
+    Username: req.cookies.Username
+  };
   //console.log(req.params)
   //console.log(templateVars);
   res.render("urls_show", templateVars);  //jump to the tiny URL page
