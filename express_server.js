@@ -28,12 +28,12 @@ const users = {
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    Password: "purple-monkey-dinosaur"
   },
  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher-funk"
+    Password: "dishwasher-funk"
   }
 }
 
@@ -45,11 +45,11 @@ app.get("/", (req, res) => {
 });
 
 function emailHelper (usersObject, email) {
-  console.log('in the helper' , email);
+  //console.log('in the helper' , email);
   for (const key in usersObject) {
-    console.log(key);
+    //console.log(key);
     if (usersObject[key]['email']=== email) {
-      console.log(usersObject['email']);
+      //console.log(usersObject['email']);
       return  false;
     }
   }
@@ -58,35 +58,35 @@ function emailHelper (usersObject, email) {
 }
 
 
-
+////////////////////////////////////////////////////////POST URLS 
 app.post("/urls", (req, res) => {
   let long = req.body.longURL
   let short = generateRandomString();
   urlDatabase[short] = long;
-  console.log(req.body); 
-  console.log(short, long);
-  console.log(urlDatabase);
+ // console.log(req.body); 
+ // console.log(short, long);
+ // console.log(urlDatabase);
      // Log the POST request body to the consol
-  //res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  //res.send("Ok"); // Respond with 'Ok' (we will replace this)
 
   res.redirect (`/urls/${short}`);
 });
 
-// Delete  POST /articles/:id/delete
+////////////////////////////////////////////Delete  POST /articles/:id/delete
 app.post('/urls/:id/delete', (req, res) => {
   const idToBeDeleted = req.params.id;
-  console.log('Id to be deleted', idToBeDeleted);
+  //console.log('Id to be deleted', idToBeDeleted);
   delete urlDatabase[idToBeDeleted];
-  console.log(urlDatabase);
+  //console.log(urlDatabase);
 
   res.redirect('/urls');
 });
 
-/// POST EDIt URLS
+///////////////////////////////////////////////////////POST EDIT URLS
 app.post('/urls/:id', (req, res) => {
   let a = req.params.id;
-  console.log('red body',   req.body.newURL);
-  console.log( 'EDIT checking return values omething;, ', a)
+  //console.log('red body',   req.body.newURL);
+  //console.log( 'EDIT checking return values omething;, ', a)
 
   if(urlDatabase[a] && req.body.newURL) { 
     urlDatabase[a] = req.body.newURL;
@@ -98,58 +98,74 @@ app.post('/urls/:id', (req, res) => {
   }
 
 });
-
+//////////////////////////////////////////////////////POST LOGout
 app.post('/logout', (req,res) => {
-
+  console.log('before press logout',users)
   //res.clearCookie('Username');
   res.clearCookie('user_id');
   res.redirect('/urls');
+  //console.log('after press logout',users)
 });
 
-///POST LOGIn  
+//////////////////////////////////////////////////////POST LOGIN
+
 app.post('/login', (req,res) => {
   // const Username = req.body.email
-
+  //console.log('LLLLOGGGG IN')  ///buggg of ceannot set headers after being sent to client
   // console.log('username is,', Username);
   // res.cookie('Username', Username) 
 
   const email = req.body.email
-
-  console.log('username is,',email);
+  const Password = req.body.Password
+  //console.log('user email  is,',email);
+  //console.log(Password)
   let emailVariable;
+  //console.log(users); ///key is the user ID here
   for (const key in users) {
-    
+    //console.log(key)
     if (users[key]['email'] === email) {
       emailVariable = key;
-    }
-  }
+      {
+        if (users[key]['Password'] == Password) {
+          res.cookie('user_id',emailVariable); 
+          res.redirect('/urls');
+          return;
+        } else {
+          return res.status(403).send(' email Match but not password')
+        }
+      }
+    } 
+  } 
+  return res.status(403).send('user email cannot be found')
 
-  res.cookie('user_id',emailVariable); 
-  ///accessible across all using req.cookies.Username
- 
-  res.redirect('/urls')
 });
 
+
+
+//////////////////////////////////////////////////////////POST REGISTER 
 app.post('/register',(req, res) => {
   //console.log(req.body); 
   let id = generateRandomString();
   let email= req.body.email;
-  //console.log('before passing into helper email is ', email);
 
-  if (emailHelper(users, email ) === false) {
-    console.log(users);
+
+  if (!emailHelper(users, email)) {
+
+    //console.log(users);
     return res.status(400).send('this email is registered')
   }
   
-  let password = req.body.password;
+  let Password = req.body.Password;
+  //console.log(req.body);
+  //console.log('password', Password);
 
-  if (!password || !email) {
-    console.log(users);
+  if (!Password || !email) {
+    //console.log(users);
     return res.status(400).send('you must enter an email AND a password');
   }
 
   
-  users[id] = {id, email,password}
+  users[id] = {id, email,Password}
   console.log(users);
 
   res.cookie('user_id', id);
@@ -157,19 +173,22 @@ app.post('/register',(req, res) => {
   res.redirect('/urls');
 });
 
- ////////GET///////
+ //////////////////////////////////////////////////GET///////
 
 
- ///this is create new URL////
+ 
+ //////////////////////////////////////////////////create new URL////
+
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
     urls: urlDatabase,
-    Username: req.cookies.Username};
+    user: req.cookies.user_id
+  };                
   console.log('after i press the create new url',templateVars)
   res.render("urls_new",templateVars);
   
 });
-
+///////////////////////////////////////////////being redirected URLS
  app.get("/urls", (req, res) => {
   
   const id = req.cookies.user_id;
@@ -184,7 +203,7 @@ app.get("/urls/new", (req, res) => {
    //Username: req.cookies.Username};
    //res.json(urlDatabase);
    //console.log('asdsadsad',req.cookies.Username)
-   console.log('template vagr', templateVars )
+   //console.log('template vagr', templateVars )
    res.render("urls_index", templateVars); //render earch under views for the specific " file name",
   
  });
@@ -199,9 +218,9 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars ={ 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[a],
-    Username: req.cookies.Username
+    user: req.cookies.user_id
   };
-  console.log('templateVars at EDIT ', templateVars);
+  //console.log('templateVars at EDIT ', templateVars);
 
   res.render("urls_show", templateVars);  
   //res.redirect(longURL);  //goign to the acutal website
@@ -210,12 +229,27 @@ app.get("/urls/:shortURL", (req, res) => {
 
 //Register 
 app.get("/register", (req, res) => {
-  res.render('register');
+  const id = req.cookies.user_id;
+  const user = users[id];
+
+
+  const templateVars = { 
+    user: user}  
+
+  console.log(templateVars);
+  res.render('register',templateVars);
   //res.redirect(longURL);  //goign to the acutal website
 })
 
 app.get("/login", (req,res)=> {
-  res.render('login');
+  const id = req.cookies.user_id;
+  const user = users[id];
+
+
+  const templateVars = { 
+    user: user}  
+
+  res.render('login', templateVars);
 });
 
 
