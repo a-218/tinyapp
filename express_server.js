@@ -25,8 +25,8 @@ function generateRandomString() {
 
 
 const urlDatabase = {
-  'b2xVn2': { longURL: "http://www.lighthouselabs.ca", userID: "aJ48lW" },
-  '9sm5xK': { longURL: "http://www.google.com", userID: "aJ4W" }
+  'b2xVn2': { longURL: "http://www.lighthouselabs.ca", userID: "aJ41W8" },
+  '9sm5xK': { longURL: "http://www.google.com", userID: "aJ41W8" }
 };
 
 const users = {
@@ -219,25 +219,44 @@ app.get("/urls/new", (req, res) => {
 
 });
 ///////////////////////////////////////////////being redirected URLS
+
+
+// const urlDatabase = {
+//   'b2xVn2': { longURL: "http://www.lighthouselabs.ca", userID: "aJ48lW" },
+//   '9sm5xK': { longURL: "http://www.google.com", userID: "aJ481W" }
+// };
+
+
+const urlsForUser = (id) => {
+  let filter ={};
+
+  for (const key in urlDatabase) {  
+    
+    if (urlDatabase[key].userID === id) {
+      filter[key] = { longURL: urlDatabase[key].longURL, userID: urlDatabase[key].userID }
+
+    }
+  
+  };
+ return filter;
+}
+
 app.get("/urls", (req, res) => {
 
   console.log('being redirected from  URLS');
 
-
-  let shortURL = req.params.shortURL;
-
-  console.log('WHEN EDIT being redirected IS PRESSED, ', shortURL);
+  console.log('WHEN EDIT being redirected IS PRESSED, ');
 
   const id = req.cookies.user_id;
-
   const user = users[id];
-  console.log(user);
 
-  console.log('url data base here is,', urlDatabase);
+  let filter = urlsForUser(id);   //pasiing the cookies user id
 
+  console.log('id here is', id , 'with users here is', users);
+  
 
   const templateVars = {
-    urls: urlDatabase,
+    urls: filter,
     user: user
   }
   console.log(templateVars)
