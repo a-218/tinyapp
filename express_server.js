@@ -78,9 +78,23 @@ app.post("/urls", (req, res) => {
 
 ////////////////////////////////////////////Delete  POST /articles/:id/delete
 app.post('/urls/:id/delete', (req, res) => {
-  const idToBeDeleted = req.params.id;
+  const idToBeDeleted = req.params.id;  
+  
+  
+  const user = req.cookies.user_id;
+  for (const key in urlDatabase){
+    if (user === urlDatabase[key]['userID']){
+      delete urlDatabase[idToBeDeleted];
+      res.redirect('/urls');
+      return;
+    }
+  }
+  
 
-  delete urlDatabase[idToBeDeleted];
+
+
+
+  //delete urlDatabase[idToBeDeleted];
 
 
   res.redirect('/urls');
