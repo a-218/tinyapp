@@ -7,6 +7,9 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+const bcrypt = require('bcryptjs');
+
+
 function generateRandomString() {
   const a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
   let result = '';
@@ -142,27 +145,59 @@ app.post('/logout', (req, res) => {
 
 app.post('/login', (req, res) => {
 
-  const email = req.body.email
-  const Password = req.body.Password
+  const email = req.body.email;
+  const Password = req.body.Password;
+  console.log('from req password',Password)
 
   let emailVariable;
 
-  for (const key in users) {  //checking if matched password and emails.
+  let foundUser;
 
-    if (users[key]['email'] === email) {
-      emailVariable = key;
-
-      if (users[key]['Password'] == Password) {
-        res.cookie('user_id', emailVariable);
-        res.redirect('/urls');
-        return;
-      } else {
-        return res.status(403).send(' email Match but not password')
-      }
-
+  for (const userId in users) {
+    const user = users[userId];
+    if (user.email === email) {
+      foundUser = user;
     }
   }
-  return res.status(403).send('user email cannot be found')
+  console.log('found user here is,',foundUser);
+
+  //if there's no user with that email, send back an error response
+  if (!foundUser) {
+    return res.status(401).send('could not find user with that email');
+  }
+
+  bcrypt.compare(Password, foundUser.Password, (err, result) => {
+    if (!result) {
+      // if the passwords don't match, send back an error response
+      return res.status(401).send('password is not correct');
+    }
+
+    // set the cookie and redirect to the protected page
+    // res.cookie('userId', foundUser.id);
+    //req.session.userId = foundUser.id;
+  
+    res.cookie('user_id', foundUser.id);
+    res.redirect('/urls');
+    return 
+   });
+
+
+  // for (const key in users) {  //checking if matched password and emails.
+
+  //   if (users[key]['email'] === email) {
+  //     emailVariable = key;
+
+  //     if (users[key]['Password'] === Password) {
+  //       res.cookie('user_id', emailVariable);
+  //       res.redirect('/urls');
+  //       return;
+  //     } else {
+  //       return res.status(403).send(' email Match but not password')
+  //     }
+
+  //   }
+  // }
+  // return res.status(403).send('user email cannot be found')
 
 });
 
@@ -174,7 +209,7 @@ app.post('/register', (req, res) => {
   let id = generateRandomString();
   let email = req.body.email;
 
-
+  
   if (!emailHelper(users, email)) {
 
     return res.status(400).send('this email is registered')
@@ -188,12 +223,28 @@ app.post('/register', (req, res) => {
     return res.status(400).send('you must enter an email AND a password');
   }
 
+  bcrypt.genSalt(10, (err, salt) => {
+    bcrypt.hash(Password, salt, (err, hash) => {
+      const newUser = {
+        id: id,
+        email,
+        Password: hash
+      };
 
-  users[id] = { id, email, Password }
+      // add our new user to the users object
+      users[id] = newUser;
+      console.log(users);
+      console.log(hash);
+      // redirect the user to the login page
+      res.redirect('/login');
+    });
+  });
 
-  res.cookie('user_id', id);
+  // users[id] = { id, email, Password }
 
-  res.redirect('/urls');
+  // res.cookie('user_id', id);
+
+  // res.redirect('/urls');
 });
 
 //////////////////////////////////////////////////GET///////
@@ -235,12 +286,6 @@ app.get("/urls/new", (req, res) => {
 ///////////////////////////////////////////////being redirected URLS
 
 
-// const urlDatabase = {
-//   'b2xVn2': { longURL: "http://www.lighthouselabs.ca", userID: "aJ48lW" },
-//   '9sm5xK': { longURL: "http://www.google.com", userID: "aJ481W" }
-// };
-
-
 const urlsForUser = (id) => {
   let filter ={};
 
@@ -273,7 +318,7 @@ app.get("/urls", (req, res) => {
     urls: filter,
     user: user
   }
-  console.log(templateVars)
+  console.log('template vars here is,', templateVars)
 
   res.render("urls_index", templateVars); //render earch under views for the specific " file name",
 
@@ -320,7 +365,6 @@ app.get("/register", (req, res) => {
 
   console.log(templateVars);
   res.render('register', templateVars);
-  //res.redirect(longURL);  //goign to the acutal website
 })
 
 app.get("/login", (req, res) => {
