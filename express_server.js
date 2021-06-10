@@ -113,10 +113,23 @@ app.post('/logout', (req,res) => {
 
 ///POST LOGIn  
 app.post('/login', (req,res) => {
-  const Username = req.body.Username
+  // const Username = req.body.email
 
-  console.log('username is,', Username);
-  res.cookie('Username', Username) 
+  // console.log('username is,', Username);
+  // res.cookie('Username', Username) 
+
+  const email = req.body.email
+
+  console.log('username is,',email);
+  let emailVariable;
+  for (const key in users) {
+    
+    if (users[key]['email'] === email) {
+      emailVariable = key;
+    }
+  }
+
+  res.cookie('user_id',emailVariable); 
   ///accessible across all using req.cookies.Username
  
   res.redirect('/urls')
@@ -136,10 +149,11 @@ app.post('/login', (req,res) => {
   const templateVars = { 
    urls: urlDatabase,
    user: user}
+   
    //Username: req.cookies.Username};
    //res.json(urlDatabase);
    //console.log('asdsadsad',req.cookies.Username)
-   //console.log('template vagr', templateVars )
+   console.log('template vagr', templateVars )
    res.render("urls_index", templateVars); //render earch under views for the specific " file name",
   
  });
@@ -168,6 +182,11 @@ app.get("/register", (req, res) => {
   res.render('register');
   //res.redirect(longURL);  //goign to the acutal website
 })
+
+app.get("/login", (req,res)=> {
+  res.render('login');
+});
+
 
 function emailHelper (usersObject, email) {
   console.log('in the helper' , email);
