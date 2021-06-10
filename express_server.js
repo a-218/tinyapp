@@ -26,7 +26,7 @@ function generateRandomString() {
 
 const urlDatabase = {
   'b2xVn2': { longURL: "http://www.lighthouselabs.ca", userID: "aJ48lW" },
-  '9sm5xK': { longURL: "http://www.google.com", userID: "aJ48lW" }
+  '9sm5xK': { longURL: "http://www.google.com", userID: "aJ4W" }
 };
 
 const users = {
@@ -69,8 +69,9 @@ app.post("/urls", (req, res) => {
   console.log('from create New URLs//after submit');
 
   let long = req.body.longURL
+  long = 'http://' + long;
   let short = generateRandomString();
-  urlDatabase[short] = {longURL:long, userID: req.cookies.user_id};
+  urlDatabase[short] = { longURL: long, userID: req.cookies.user_id };
 
   res.redirect(`/urls/${short}`);
 });
@@ -195,8 +196,8 @@ app.get("/urls/new", (req, res) => {
 
   const id = req.cookies.user_id;
   // console.log(id);
-   const user = users[id];
-   console.log(user);
+  const user = users[id];
+  console.log(user);
 
   if (checkOnline) {
 
@@ -222,14 +223,10 @@ app.get("/urls", (req, res) => {
 
   console.log('being redirected from  URLS');
 
-  console.log('shortURL', req.body.shortURL)
 
   let shortURL = req.params.shortURL;
 
-  console.log('WHEN EDIT being redirected IS PRESSED, ', shortURL );
-
-
-
+  console.log('WHEN EDIT being redirected IS PRESSED, ', shortURL);
 
   const id = req.cookies.user_id;
 
@@ -255,13 +252,13 @@ app.get("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
 
-  console.log('WHEN EDIT IS PRESSED, ', shortURL );
+  console.log('WHEN EDIT IS PRESSED, ', shortURL);
 
 
-  const longURL = urlDatabase[shortURL ]['longURL'];
+  const longURL = urlDatabase[shortURL]['longURL'];
 
 
-  
+
   const id = req.cookies.user_id;
 
   const user = users[id];
@@ -305,7 +302,22 @@ app.get("/login", (req, res) => {
   res.render('login', templateVars);
 });
 
+app.get('/u/:id', (req, res) => {
+  console.log('when short URL is pressed', urlDatabase);
 
+  let id = req.params.id;
+
+  if (id.includes('.')) {
+    id = 'http://' + id;
+    res.redirect(id);
+    return;
+  } else {
+    console.log('id herer is', id);
+    let longURL = urlDatabase[id]['longURL'];
+    res.redirect(longURL);
+    return;
+  }
+})
 
 app.get("/hello", (req, res) => {
   res.send(`<html><body>Hello <b>World</b></body></html>\n`);
