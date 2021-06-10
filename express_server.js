@@ -44,24 +44,19 @@ app.get("/", (req, res) => {
 
 });
 
+function emailHelper (usersObject, email) {
+  console.log('in the helper' , email);
+  for (const key in usersObject) {
+    console.log(key);
+    if (usersObject[key]['email']=== email) {
+      console.log(usersObject['email']);
+      return  false;
+    }
+  }
+  return true;
 
-///this is create new URL////
-app.get("/urls/new", (req, res) => {
-  const templateVars = { 
-    urls: urlDatabase,
-    Username: req.cookies.Username};
-  console.log('after i press the create new url',templateVars)
-  res.render("urls_new",templateVars);
-  
-});
+}
 
-// app.get("/urls/:id", (req, res) => {
-//   let a = req.params.id;   /////
-//   console.log(a);
-//   res.render("urls_new");///// 
-// });
-
-////post URLS
 
 
 app.post("/urls", (req, res) => {
@@ -135,9 +130,45 @@ app.post('/login', (req,res) => {
   res.redirect('/urls')
 });
 
+app.post('/register',(req, res) => {
+  //console.log(req.body); 
+  let id = generateRandomString();
+  let email= req.body.email;
+  //console.log('before passing into helper email is ', email);
 
+  if (emailHelper(users, email ) === false) {
+    console.log(users);
+    return res.status(400).send('this email is registered')
+  }
+  
+  let password = req.body.password;
+
+  if (!password || !email) {
+    console.log(users);
+    return res.status(400).send('you must enter an email AND a password');
+  }
+
+  
+  users[id] = {id, email,password}
+  console.log(users);
+
+  res.cookie('user_id', id);
+  //console.log(id);   //generate user id
+  res.redirect('/urls');
+});
 
  ////////GET///////
+
+
+ ///this is create new URL////
+app.get("/urls/new", (req, res) => {
+  const templateVars = { 
+    urls: urlDatabase,
+    Username: req.cookies.Username};
+  console.log('after i press the create new url',templateVars)
+  res.render("urls_new",templateVars);
+  
+});
 
  app.get("/urls", (req, res) => {
   
@@ -188,46 +219,6 @@ app.get("/login", (req,res)=> {
 });
 
 
-function emailHelper (usersObject, email) {
-  console.log('in the helper' , email);
-  for (const key in usersObject) {
-    console.log(key);
-    if (usersObject[key]['email']=== email) {
-      console.log(usersObject['email']);
-      return  false;
-    }
-  }
-  return true;
-
-}
-
-
-app.post('/register',(req, res) => {
-  //console.log(req.body); 
-  let id = generateRandomString();
-  let email= req.body.email;
-  //console.log('before passing into helper email is ', email);
-
-  if (emailHelper(users, email ) === false) {
-    console.log(users);
-    return res.status(400).send('this email is registered')
-  }
-  
-  let password = req.body.password;
-
-  if (!password || !email) {
-    console.log(users);
-    return res.status(400).send('you must enter an email AND a password');
-  }
-
-  
-  users[id] = {id, email,password}
-  console.log(users);
-
-  res.cookie('user_id', id);
-  //console.log(id);   //generate user id
-  res.redirect('/urls');
-});
 
 app.get("/hello", (req, res) => {
   res.send(`<html><body>Hello <b>World</b></body></html>\n`);
