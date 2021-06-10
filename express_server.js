@@ -17,16 +17,17 @@ function generateRandomString() {
   return result;
 
 }
- const urlDatabase = {
-   "b2xVn2": "http://www.lighthouselabs.ca",
-   "9sm5xK": "http://www.google.com"
- };
+
+//  const urlDatabase = {
+//    "b2xVn2": "http://www.lighthouselabs.ca",
+//    "9sm5xK": "http://www.google.com"
+//  };
 
 
-// const urlDatabase = {
-//   'b2xVn2': { longURL: "http://www.lighthouselabs.ca", userID: "aJ48lW" },
-//   '9sm5xK': { longURL: "http://www.google.com", userID: "aJ48lW" }
-// };
+const urlDatabase = {
+  'b2xVn2': { longURL: "http://www.lighthouselabs.ca", userID: "aJ48lW" },
+  '9sm5xK': { longURL: "http://www.google.com", userID: "aJ48lW" }
+};
 
 const users = {
   "userRandomID": {
@@ -69,7 +70,8 @@ app.post("/urls", (req, res) => {
 
   let long = req.body.longURL
   let short = generateRandomString();
-  urlDatabase[short] = long;
+  urlDatabase[short] = {longURL:long, userID: req.cookies.user_id};
+
   res.redirect(`/urls/${short}`);
 });
 
@@ -91,19 +93,21 @@ app.post('/urls/:id', (req, res) => {
   console.log('WHen submit button under edit URLS page');
 
   if (urlDatabase[shortURL] && req.body.newURL) {
-    urlDatabase[shortURL] = req.body.newURL;
+    urlDatabase[shortURL]['longURL'] = req.body.newURL;
     console.log(urlDatabase);
     res.redirect('/urls');
+
   } else {
+
     console.log('if blank NEW URL is entered redirected the same page ?');
-    //const templateVars = { shortURL: a, longURL: 'sdfds' };
+
 
     const templateVars = {
       shortURL: shortURL,
-      longURL: urlDatabase[shortURL],
+      longURL: urlDatabase[shortURL]['longURL'],
       user: req.cookies.user_id
     };
-
+    console.log(templateVars);
     res.redirect('/urls'); //redirect to index page
     //res.render("urls_show", templateVars); ///stay at teh same page
 
@@ -112,11 +116,11 @@ app.post('/urls/:id', (req, res) => {
 });
 //////////////////////////////////////////////////////POST LOGout
 app.post('/logout', (req, res) => {
-  console.log('before press logout', users)
+  console.log('before press logout', users);
 
   res.clearCookie('user_id');
   res.redirect('/urls');
-  //console.log('after press logout',users)
+
 });
 
 //////////////////////////////////////////////////////POST LOGIN
@@ -187,13 +191,18 @@ app.get("/urls/new", (req, res) => {
 
   let checkOnline = req.cookies.user_id;
 
-  console.log('checking if user is signed in is cookies defined', checkOnline);
+  console.log('checking if user is signed in is cookies ID defined', checkOnline);
+
+  const id = req.cookies.user_id;
+  // console.log(id);
+   const user = users[id];
+   console.log(user);
 
   if (checkOnline) {
 
     const templateVars = {
       urls: urlDatabase,
-      user: req.cookies.user_id
+      user: user,
     };
 
     console.log('after i press the create new url', templateVars);
@@ -213,14 +222,28 @@ app.get("/urls", (req, res) => {
 
   console.log('being redirected from  URLS');
 
+  console.log('shortURL', req.body.shortURL)
+
+  let shortURL = req.params.shortURL;
+
+  console.log('WHEN EDIT being redirected IS PRESSED, ', shortURL );
+
+
+
+
   const id = req.cookies.user_id;
+
   const user = users[id];
+  console.log(user);
+
+  console.log('url data base here is,', urlDatabase);
+
 
   const templateVars = {
     urls: urlDatabase,
     user: user
   }
-
+  console.log(templateVars)
 
   res.render("urls_index", templateVars); //render earch under views for the specific " file name",
 
@@ -230,16 +253,25 @@ app.get("/urls", (req, res) => {
 
 /////////////////////////////////////////////////////////////////new route
 app.get("/urls/:shortURL", (req, res) => {
-  let a = req.params.shortURL;
+  let shortURL = req.params.shortURL;
 
-  console.log('WHEN EDIT IS PRESSED, ', a);
+  console.log('WHEN EDIT IS PRESSED, ', shortURL );
 
-  const longURL = urlDatabase[a];
+
+  const longURL = urlDatabase[shortURL ]['longURL'];
+
+
+  
+  const id = req.cookies.user_id;
+
+  const user = users[id];
+
   const templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[a],
-    user: req.cookies.user_id
+    shortURL: shortURL,
+    longURL: longURL,
+    user: user
   };
+
 
   res.render("urls_show", templateVars);
   //res.redirect(longURL);  //goign to the acutal website
