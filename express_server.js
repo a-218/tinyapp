@@ -1,21 +1,20 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
-//var cookieParser = require('cookie-parser')
+const PORT = 8080;
+
+const {getUserByEmail} = require('./helpers');
 
 const cookieSession = require('cookie-session');
-
 app.set("view engine", "ejs");
-
 app.use(express.urlencoded({ extended: true }));
-//app.use(cookieParser());
-
 app.use(cookieSession({
   name: 'whateverWeWant',
   keys: ['aouishefohbasodfhn', 'key2']
 }));
-
 const bcrypt = require('bcryptjs');
+
+//var cookieParser = require('cookie-parser')
+//app.use(cookieParser());
 
 
 function generateRandomString() {
@@ -28,12 +27,6 @@ function generateRandomString() {
   return result;
 
 }
-
-//  const urlDatabase = {
-//    "b2xVn2": "http://www.lighthouselabs.ca",
-//    "9sm5xK": "http://www.google.com"
-//  };
-
 
 const urlDatabase = {
   'b2xVn2': { longURL: "http://www.lighthouselabs.ca", userID: "aJ41W8" },
@@ -73,6 +66,16 @@ function emailHelper(usersObject, email) {
 
 }
 
+// const getUserByEmail = function(email, userDatabase) {
+//   let foundUser;
+//   for (const userId in userDatabase) {
+//     const user = userDatabase[userId];
+//     if (user.email === email) {
+//       foundUser = user;
+//     }
+//   }
+//   return foundUser;
+// };
 
 ////////////////////////////////////////////////////////POST URLS 
 app.post("/urls", (req, res) => {
@@ -80,7 +83,7 @@ app.post("/urls", (req, res) => {
   console.log('from create New URLs//after submit');
 
   let long = req.body.longURL
-  long = 'http://' + long;
+  //long = 'http://' + long;
   let short = generateRandomString();
   urlDatabase[short] = { longURL: long, userID: req.session.user_id };
 
@@ -89,9 +92,9 @@ app.post("/urls", (req, res) => {
 
 ////////////////////////////////////////////Delete  POST /articles/:id/delete
 app.post('/urls/:id/delete', (req, res) => {
+  
   const idToBeDeleted = req.params.id;  
-  
-  
+
   //const user = req.cookies.user_id;
   const user = req.session.user_id;
   for (const key in urlDatabase){
@@ -101,14 +104,7 @@ app.post('/urls/:id/delete', (req, res) => {
       return;
     }
   }
-  
-
-
-
-
   //delete urlDatabase[idToBeDeleted];
-
-
   res.redirect('/urls');
 });
 
@@ -148,6 +144,8 @@ app.post('/logout', (req, res) => {
 
   //res.clearCookie('user_id');
   req.session = null;
+  let keys = Object.keys(users);
+  console.log('when logout the keys are', keys)
   res.redirect('/urls');
 
 });
@@ -158,19 +156,23 @@ app.post('/login', (req, res) => {
 
   const email = req.body.email;
   const Password = req.body.Password;
-  console.log('from req password',Password)
+  //console.log('from req password',Password)
 
   let emailVariable;
 
-  let foundUser;
+  let foundUser = getUserByEmail (email, users);
+  
+  
+  // let foundUser;
+  // for (const userId in users) {
+  //   const user = users[userId];
+  //   if (user.email === email) {
+  //     foundUser = user;
+  //   }
+  // }
 
-  for (const userId in users) {
-    const user = users[userId];
-    if (user.email === email) {
-      foundUser = user;
-    }
-  }
-  console.log('found user here is,',foundUser);
+
+  //console.log('found user here after teh helper function,',foundUser);
 
   //if there's no user with that email, send back an error response
   if (!foundUser) {
@@ -226,6 +228,8 @@ app.post('/register', (req, res) => {
 
     return res.status(400).send('this email is registered')
   }
+
+
 
   let Password = req.body.Password;
 
@@ -344,14 +348,23 @@ app.get("/urls", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
 
-  console.log('WHEN EDIT IS PRESSED, ', shortURL);
+  let checkOnline = req.session.user_id;
+  console.log('checking if useris  is cookies ID defined checkonline', checkOnline);
 
 
-  const longURL = urlDatabase[shortURL]['longURL'];
+  if (checkOnline===undefined ){
+    return res.status(404).send('you are not login');
+  } 
 
 
 
-  //const id = req.cookies.user_id;
+  console.log('this is ', typeof shortURL)
+  let urlEntry = urlDatabase[shortURL];
+  if (!urlEntry){
+    return res.status(404).send('URLS not found');
+  }
+
+  const longURL = urlEntry['longURL'];
   const id = req.session.user_id;
   const user = users[id];
 
@@ -360,16 +373,14 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: longURL,
     user: user
   };
-
-
   res.render("urls_show", templateVars);
-  //res.redirect(longURL);  //goign to the acutal website
+
 })
 
 
 /////////////////////////////////////////////////////////////////Register 
 app.get("/register", (req, res) => {
-  //const id = req.cookies.user_id;
+
   const id = req.session.user_id;
   const user = users[id];
 
@@ -383,7 +394,6 @@ app.get("/register", (req, res) => {
 })
 
 app.get("/login", (req, res) => {
-  //const id = req.cookies.user_id;
   const id = req.session.user_id;
   const user = users[id];
 
@@ -399,7 +409,7 @@ app.get('/u/:id', (req, res) => {
   console.log('when short URL is pressed', urlDatabase);
 
   let id = req.params.id;
-
+  
   if (id.includes('.')) {
     id = 'http://' + id;
     res.redirect(id);
