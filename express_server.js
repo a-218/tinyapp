@@ -260,8 +260,6 @@ app.get("/urls", (req, res) => {
 
 });
 
-
-
 app.get("/urls/:shortURL", (req, res) => {
 
   let currentSession  = req.session.user_id;
