@@ -97,7 +97,7 @@ app.post('/urls/:id', (req, res) => {
 
   if (urlDatabase[shortURL] && req.body.newURL) {
     urlDatabase[shortURL]['longURL'] = req.body.newURL;
-    //console.log(urlDatabase);
+
     res.redirect('/urls');
 
   } else {
@@ -199,7 +199,7 @@ app.get("/urls/new", (req, res) => {
   const id = req.session.user_id;
 
   const user = users[id];
-  //console.log(user);
+
 
   if (currentSession) {
 
@@ -208,7 +208,6 @@ app.get("/urls/new", (req, res) => {
       user: user,
     };
 
-   // console.log('after i press the create new url', templateVars);
 
     res.render("urls_new", templateVars);
     return;
@@ -258,7 +257,7 @@ app.get("/urls/:shortURL", (req, res) => {
  
 
   for (key in urlDatabase) {
-    
+
     if (shortURL === key) {
       if (urlDatabase[shortURL]['userID'] !== currentSession){
         return res.status(404).send('not your account');
