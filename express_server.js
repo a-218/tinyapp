@@ -1,11 +1,19 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
-var cookieParser = require('cookie-parser')
+//var cookieParser = require('cookie-parser')
+
+const cookieSession = require('cookie-session');
 
 app.set("view engine", "ejs");
+
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+//app.use(cookieParser());
+
+app.use(cookieSession({
+  name: 'whateverWeWant',
+  keys: ['aouishefohbasodfhn', 'key2']
+}));
 
 const bcrypt = require('bcryptjs');
 
@@ -74,7 +82,7 @@ app.post("/urls", (req, res) => {
   let long = req.body.longURL
   long = 'http://' + long;
   let short = generateRandomString();
-  urlDatabase[short] = { longURL: long, userID: req.cookies.user_id };
+  urlDatabase[short] = { longURL: long, userID: req.session.user_id };
 
   res.redirect(`/urls/${short}`);
 });
@@ -84,7 +92,8 @@ app.post('/urls/:id/delete', (req, res) => {
   const idToBeDeleted = req.params.id;  
   
   
-  const user = req.cookies.user_id;
+  //const user = req.cookies.user_id;
+  const user = req.session.user_id;
   for (const key in urlDatabase){
     if (user === urlDatabase[key]['userID']){
       delete urlDatabase[idToBeDeleted];
@@ -123,7 +132,8 @@ app.post('/urls/:id', (req, res) => {
     const templateVars = {
       shortURL: shortURL,
       longURL: urlDatabase[shortURL]['longURL'],
-      user: req.cookies.user_id
+      user: req.session.user_id
+      //user: req.cookies.user_id
     };
     console.log(templateVars);
     res.redirect('/urls'); //redirect to index page
@@ -136,7 +146,8 @@ app.post('/urls/:id', (req, res) => {
 app.post('/logout', (req, res) => {
   console.log('before press logout', users);
 
-  res.clearCookie('user_id');
+  //res.clearCookie('user_id');
+  req.session = null;
   res.redirect('/urls');
 
 });
@@ -173,10 +184,11 @@ app.post('/login', (req, res) => {
     }
 
     // set the cookie and redirect to the protected page
-    // res.cookie('userId', foundUser.id);
-    //req.session.userId = foundUser.id;
+    //res.cookie('user_id', foundUser.id);
+
+    req.session.user_id = foundUser.id;
   
-    res.cookie('user_id', foundUser.id);
+  
     res.redirect('/urls');
     return 
    });
@@ -255,11 +267,12 @@ app.post('/register', (req, res) => {
 
 app.get("/urls/new", (req, res) => {
 
-  let checkOnline = req.cookies.user_id;
-
+  //let checkOnline = req.cookies.user_id;
+  let checkOnline = req.session.user_id;
   console.log('checking if user is signed in is cookies ID defined', checkOnline);
 
-  const id = req.cookies.user_id;
+  //const id = req.cookies.user_id;
+  const id = req.session.user_id;
   // console.log(id);
   const user = users[id];
   console.log(user);
@@ -306,7 +319,8 @@ app.get("/urls", (req, res) => {
 
   console.log('WHEN EDIT being redirected IS PRESSED, ');
 
-  const id = req.cookies.user_id;
+  //const id = req.cookies.user_id;
+  const id = req.session.user_id;
   const user = users[id];
 
   let filter = urlsForUser(id);   //pasiing the cookies user id
@@ -337,8 +351,8 @@ app.get("/urls/:shortURL", (req, res) => {
 
 
 
-  const id = req.cookies.user_id;
-
+  //const id = req.cookies.user_id;
+  const id = req.session.user_id;
   const user = users[id];
 
   const templateVars = {
@@ -355,7 +369,8 @@ app.get("/urls/:shortURL", (req, res) => {
 
 /////////////////////////////////////////////////////////////////Register 
 app.get("/register", (req, res) => {
-  const id = req.cookies.user_id;
+  //const id = req.cookies.user_id;
+  const id = req.session.user_id;
   const user = users[id];
 
 
@@ -368,7 +383,8 @@ app.get("/register", (req, res) => {
 })
 
 app.get("/login", (req, res) => {
-  const id = req.cookies.user_id;
+  //const id = req.cookies.user_id;
+  const id = req.session.user_id;
   const user = users[id];
 
 
