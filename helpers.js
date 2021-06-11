@@ -1,5 +1,5 @@
 
-const getUserByEmail = function(email, userDatabase) {
+const getUserByEmail = function (email, userDatabase) {
   let foundUser;
   for (const userId in userDatabase) {
     const user = userDatabase[userId];
@@ -10,4 +10,4 @@ const getUserByEmail = function(email, userDatabase) {
   return foundUser;
 };
 
-module.exports = {getUserByEmail};
+module.exports = { getUserByEmail };
