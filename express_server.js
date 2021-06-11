@@ -1,9 +1,7 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
-
 const { getUserByEmail } = require('./helpers');
-
 const cookieSession = require('cookie-session');
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
@@ -13,6 +11,7 @@ app.use(cookieSession({
 }));
 
 const bcrypt = require('bcryptjs');
+
 
 
 function generateRandomString() {
@@ -93,11 +92,12 @@ app.post('/urls/:id/delete', (req, res) => {
 
 
 app.post('/urls/:id', (req, res) => {
-  let shortURL = req.params.id; 
+
+  let shortURL = req.params.id;
 
   if (urlDatabase[shortURL] && req.body.newURL) {
     urlDatabase[shortURL]['longURL'] = req.body.newURL;
-    console.log(urlDatabase);
+    //console.log(urlDatabase);
     res.redirect('/urls');
 
   } else {
@@ -107,7 +107,7 @@ app.post('/urls/:id', (req, res) => {
       longURL: urlDatabase[shortURL]['longURL'],
       user: req.session.user_id
     };
-  
+
     res.redirect('/urls');
 
   }
@@ -116,7 +116,7 @@ app.post('/urls/:id', (req, res) => {
 
 
 app.post('/logout', (req, res) => {
-  console.log('before press logout', users);
+
 
   req.session = null;
   let keys = Object.keys(users);
@@ -136,14 +136,13 @@ app.post('/login', (req, res) => {
 
   let foundUser = getUserByEmail(email, users);
 
-  //if there's no user with that email, send back an error response
   if (!foundUser) {
     return res.status(401).send('could not find user');
   }
 
   bcrypt.compare(Password, foundUser.Password, (err, result) => {
+
     if (!result) {
-      // if the passwords don't match, send back an error response
       return res.status(401).send('password is not correct');
     }
 
@@ -195,23 +194,21 @@ app.post('/register', (req, res) => {
 
 app.get("/urls/new", (req, res) => {
 
-  let checkOnline = req.session.user_id;
-  console.log('checking if user is signed in is cookies ID defined', checkOnline);
-
+  let currentSession = req.session.user_id;
 
   const id = req.session.user_id;
 
   const user = users[id];
-  console.log(user);
+  //console.log(user);
 
-  if (checkOnline) {
+  if (currentSession) {
 
     const templateVars = {
       urls: urlDatabase,
       user: user,
     };
 
-    console.log('after i press the create new url', templateVars);
+   // console.log('after i press the create new url', templateVars);
 
     res.render("urls_new", templateVars);
     return;
@@ -230,46 +227,51 @@ const urlsForUser = (id) => {
 
     if (urlDatabase[key].userID === id) {
       filter[key] = { longURL: urlDatabase[key].longURL, userID: urlDatabase[key].userID }
-
     }
-
   };
   return filter;
 }
 
-app.get("/urls", (req, res) => {
+app.get("/urls", (req, res) => { 
 
   const id = req.session.user_id;
   const user = users[id];
 
-  let filter = urlsForUser(id);  
-
-  console.log('id here is', id, 'with users here is', users);
-
+  let filter = urlsForUser(id);
 
   const templateVars = {
     urls: filter,
     user: user
   }
-  console.log('template vars here is,', templateVars)
 
-  res.render("urls_index", templateVars); 
+  res.render("urls_index", templateVars);
 
 });
 
 
 
 app.get("/urls/:shortURL", (req, res) => {
-  let shortURL = req.params.shortURL;
 
-  let checkOnline = req.session.user_id;
-  
+
+  let currentSession  = req.session.user_id;
+  let shortURL = req.params.shortURL;
+ 
+
+  for (key in urlDatabase) {
+    
+    if (shortURL === key) {
+      if (urlDatabase[shortURL]['userID'] !== currentSession){
+        return res.status(404).send('not your account');
+      }
+    }
+  }
+
   let urlEntry = urlDatabase[shortURL];
   if (!urlEntry) {
     return res.status(404).send('URLS not found');
   }
 
-  if (checkOnline === undefined) {
+  if (currentSession  === undefined) {
     return res.status(404).send('you are not login');
   }
 
@@ -286,8 +288,6 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 
 })
-
-
 
 app.get("/register", (req, res) => {
 
@@ -318,14 +318,13 @@ app.get("/login", (req, res) => {
 app.get('/u/:id', (req, res) => {
 
   let id = req.params.id;
-
   if (id.includes('.')) {
     id = 'http://' + id;
     res.redirect(id);
     return;
 
   } else {
-    
+
     let longURL = urlDatabase[id]['longURL'];
     res.redirect(longURL);
     return;
