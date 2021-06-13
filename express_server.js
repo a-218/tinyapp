@@ -13,7 +13,7 @@ app.use(cookieSession({
 const bcrypt = require('bcryptjs');
 
 
-
+/// Generate random strings for User ID
 function generateRandomString() {
   const a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -55,6 +55,8 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+
+/// function to determine if an emial exists in the data base
 function emailHelper(usersObject, email) {
 
   for (const key in usersObject) {
@@ -65,6 +67,9 @@ function emailHelper(usersObject, email) {
   }
   return true;
 };
+
+
+//creat a new url if the user is logged in, or output an erro.
 
 app.post("/urls", (req, res) => {
 
@@ -83,6 +88,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${short}`);
 });
 
+// delete urls in the index page
 app.post('/urls/:id/delete', (req, res) => {
 
   const idToBeDeleted = req.params.id;
@@ -103,10 +109,12 @@ app.post('/urls/:id/delete', (req, res) => {
   res.redirect('/urls');
 });
 
+
+//editing Long urls infomation 
+
 app.post('/urls/:id', (req, res) => {
 
 
-  console.log('i am right here');
   let shortURL = req.params.id;
 
   if (urlDatabase[shortURL] && req.body.newURL) {
@@ -127,6 +135,8 @@ app.post('/urls/:id', (req, res) => {
 
 });
 
+
+//logout for the user and redirect back to urls page
 app.post('/logout', (req, res) => {
 
   req.session = null;
@@ -136,6 +146,8 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
+
+//login page for user, outputs an error if user not found or incorerct information 
 app.post('/login', (req, res) => {
 
   const email = req.body.email;
@@ -167,7 +179,7 @@ app.post('/login', (req, res) => {
 });
 
 
-
+//register page for the user and redirect back to urls page
 app.post('/register', (req, res) => {
 
   let id = generateRandomString();
@@ -186,7 +198,6 @@ app.post('/register', (req, res) => {
 
     return res.status(400).send('you must enter an email AND a password');
   }
-
 
 
   bcrypt.genSalt(10, (err, salt) => {
@@ -210,7 +221,7 @@ app.post('/register', (req, res) => {
 
 });
 
-
+// creating new urls if user is login or it redirects user to login page
 app.get("/urls/new", (req, res) => {
  
   let currentSession = req.session.user_id;
@@ -255,6 +266,8 @@ const urlsForUser = (id) => {
   return filter;
 }
 
+
+//display the my urls index page
 app.get("/urls", (req, res) => { 
 
 
@@ -274,6 +287,9 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 
 });
+
+
+//editing the urls if it belongs to the user
 
 app.get("/urls/:shortURL", (req, res) => {
 
@@ -323,11 +339,11 @@ app.get("/urls/:shortURL", (req, res) => {
 
 })
 
+
+//show the register page
 app.get("/register", (req, res) => {
 
   const id = req.session.user_id;
-
-  
 
   const user = users[id];
   
@@ -338,6 +354,8 @@ app.get("/register", (req, res) => {
   res.render('register', templateVars);
 })
 
+
+//shows the login page
 app.get("/login", (req, res) => {
 
   const id = req.session.user_id;
@@ -351,6 +369,7 @@ app.get("/login", (req, res) => {
   res.render('login', templateVars);
 });
 
+//redirect user to the correct long url website
 app.get('/u/:id', (req, res) => {
 
   let id = req.params.id;
