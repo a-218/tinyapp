@@ -68,6 +68,12 @@ function emailHelper(usersObject, email) {
 
 app.post("/urls", (req, res) => {
 
+  if (!users[req.session.user_id]){
+    const errorMessage = 'you have to be logged in';
+    res.status(401).send(errorMessage);
+    return;
+  };
+
   let long = req.body.longURL
 
   let short = generateRandomString();
@@ -99,6 +105,8 @@ app.post('/urls/:id/delete', (req, res) => {
 
 app.post('/urls/:id', (req, res) => {
 
+
+  console.log('i am right here');
   let shortURL = req.params.id;
 
   if (urlDatabase[shortURL] && req.body.newURL) {
@@ -179,19 +187,24 @@ app.post('/register', (req, res) => {
     return res.status(400).send('you must enter an email AND a password');
   }
 
+
+
   bcrypt.genSalt(10, (err, salt) => {
 
     bcrypt.hash(Password, salt, (err, hash) => {
 
       const newUser = {
         id: id,
-        email,
+        email: req.body.email,
         Password: hash
       };
 
       users[id] = newUser;
-
-      res.redirect('/login');
+  
+      req.session.user_id = id;
+   
+      res.redirect('/urls');
+    
     });
   });
 
@@ -199,7 +212,7 @@ app.post('/register', (req, res) => {
 
 
 app.get("/urls/new", (req, res) => {
-
+ 
   let currentSession = req.session.user_id;
 
   const id = req.session.user_id;
@@ -244,8 +257,9 @@ const urlsForUser = (id) => {
 
 app.get("/urls", (req, res) => { 
 
+
   const id = req.session.user_id;
-  
+
   const user = users[id];
 
   let filter = urlsForUser(id);
@@ -255,6 +269,7 @@ app.get("/urls", (req, res) => {
     urls: filter,
     user: user
   }
+
 
   res.render("urls_index", templateVars);
 
@@ -312,8 +327,10 @@ app.get("/register", (req, res) => {
 
   const id = req.session.user_id;
 
-  const user = users[id];
+  
 
+  const user = users[id];
+  
   const templateVars = {
     user: user
   };
@@ -355,8 +372,9 @@ app.get('/u/:id', (req, res) => {
   }
 })
 
-app.get("/hello", (req, res) => {
-  res.send(`<html><body>Hello <b>World</b></body></html>\n`);
+app.get("/", (req, res) => {
+  //res.send(`<html><body>Hello <b>World</b></body></html>\n`);
+  res.redirect('/urls');
 });
 
 app.listen(PORT, () => {
